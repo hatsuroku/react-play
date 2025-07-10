@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>RxJS Example</title>
+    <script src="https://unpkg.com/rxjs@^7/dist/bundles/rxjs.umd.min.js"></script>
+    <style>
+      .close {
+        background-color: bisque;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="refresh" style="background-color: lightblue">refresh</div>
+    <div style="background-color: lightgray">
+      <div>
+        <div class="user1">user1</div>
+        <div class="close close1">x</div>
+      </div>
+      <div>
+        <div class="user2">user2</div>
+        <div class="close close2">x</div>
+      </div>
+      <div>
+        <div class="user3">user3</div>
+        <div class="close close3">x</div>
+      </div>
+    </div>
+  </body>
+
+  <script>
+    const rx = rxjs;
+    const refreshButton = document.querySelector(".refresh");
+    const refreshClickStream = rx.fromEvent(refreshButton, "click");
+
+    const closeButton1 = document.querySelector(".close1");
+    const close1ClickStream = rx.fromEvent(closeButton1, "click");
+    // and the same logic for close2 and close3
+
+    const requestStream = refreshClickStream.pipe(
+      rx.startWith("startup click"),
+      rx.map(() => {
+        const randomOffset = Math.floor(Math.random() * 500);
+        return "https://api.github.com/users?since=" + randomOffset;
+      })
+    );
+
+    const responseStream = requestStream.pipe(
+      rx.mergeMap((requestUrl) => rx.from(fetch(requestUrl))),
+      rx.mergeMap((response) => rx.from(response.json()))
+    );
+
+    const suggestion1Stream = close1ClickStream.pipe(
+      rx.startWith('yes'),
+      rx.startWith(null),
+      rx.combineLatestWith(responseStream),
+      rx.map(
+        ([click, listUsers]) => {
+          console.log(click);
+          return listUsers[Math.floor(Math.random() * listUsers.length)];
+        }
+      ),
+      rx.mergeWith(refreshClickStream.pipe(rx.map(() => null))),
+    );
+    // and the same logic for suggestion2Stream and suggestion3Stream
+
+    suggestion1Stream.subscribe(function (suggestion) {
+      const user1 = document.querySelector(".user1");
+      if (suggestion === null) {
+        user1.style.opacity = 0;
+      } else {
+        user1.style.opacity = 1;
+        user1.textContent = suggestion.login;
+      }
+    });
+  </script>
+</html>
