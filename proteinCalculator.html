@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蛋白质计算器</title>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #4285f4;
+            --light-blue: #e8f0fe;
+            --text-color: #202124;
+            --light-text: #5f6368;
+            --border-color: #dadce0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--light-blue);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: var(--light-text);
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .result {
+            margin-top: 24px;
+            padding: 20px;
+            background-color: var(--light-blue);
+            border-radius: 12px;
+            display: none;
+        }
+
+        .result h3 {
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
+        .food-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .food-item:last-child {
+            border-bottom: none;
+        }
+
+        .food-name {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .food-amount {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>蛋白质摄入量计算器</h1>
+
+    <div class="input-group">
+        <label for="targetProtein">每日需摄入蛋白质 (g)</label>
+        <input type="number" id="targetProtein" value="93" min="0" step="0.1">
+    </div>
+
+    <div class="input-group">
+        <label for="meat">已摄入肉类 (g)</label>
+        <input type="number" id="meat" placeholder="0" value="0" min="0" step="0.1">
+    </div>
+
+    <div class="input-group">
+        <label for="whey">已摄入蛋白粉 (g)</label>
+        <input type="number" id="whey" placeholder="0" value="0" min="0" step="0.1">
+    </div>
+
+    <button onclick="calculateProtein()">计算剩余所需</button>
+
+    <div class="result" id="result">
+        <h3>今日还需摄入</h3>
+        <div class="food-item">
+            <span class="food-name">纯瘦肉</span>
+            <span class="food-amount" id="meatAmount">0 g</span>
+        </div>
+        <div class="food-item">
+            <span class="food-name">蛋白粉</span>
+            <span class="food-amount" id="wheyAmount">0 g</span>
+        </div>
+        <div class="food-item">
+            <span class="food-name">鸡蛋</span>
+            <span class="food-amount" id="eggCount">0 个</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculateProtein() {
+        const proteinPerDay = parseFloat(document.getElementById('targetProtein').value) || 0;
+        const meatGram = parseFloat(document.getElementById('meat').value) || 0;
+        const wheyGram = parseFloat(document.getElementById('whey').value) || 0;
+
+        const proteinPer = {
+            whey: 21.9 / 30,
+            meat: 93 / 370,
+            egg: 24 / 5,
+        }
+
+        function calRestProtein(today) {
+            const proteinToday = Object.entries(today).reduce((acc, [food, foodGram]) => acc + proteinPer[food] * foodGram, 0);
+            const proteinRest = proteinPerDay - proteinToday;
+            return Object.entries(proteinPer).reduce((acc, [food, proteinUnit]) => {
+                acc[food] = proteinRest / proteinUnit;
+                return acc;
+            }, {});
+        }
+
+        const { meat, whey, egg } = calRestProtein({
+            whey: wheyGram,
+            meat: meatGram,
+        });
+
+        document.getElementById('meatAmount').textContent = `${meat.toFixed(1)} g`;
+        document.getElementById('wheyAmount').textContent = `${whey.toFixed(1)} g`;
+        document.getElementById('eggCount').textContent = `${egg.toFixed(1)} 个`;
+
+        document.getElementById('result').style.display = 'block';
+    }
+
+    // 支持回车键计算
+    document.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            calculateProtein();
+        }
+    });
+
+    /* ===== 新增：自动保存 & 恢复 ===== */
+    const fields = ['targetProtein', 'meat', 'whey'];   // 需要记住的输入框 id
+
+    // 1. 页面加载时恢复数据
+    window.addEventListener('DOMContentLoaded', () => {
+        fields.forEach(id => {
+            const saved = localStorage.getItem(`protein_${id}`);
+            if (saved !== null) {
+                document.getElementById(id).value = saved;
+            }
+        });
+    });
+
+    // 2. 输入框失去焦点时保存数据
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener('blur', () => {
+            localStorage.setItem(`protein_${id}`, el.value);
+        });
+    });
+</script>
+</script>
+</body>
+</html>
