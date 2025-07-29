@@ -57,7 +57,7 @@
             font-weight: 500;
         }
 
-        input[type="number"] {
+        input[type="text"], input[type="number"] {
             width: 100%;
             padding: 12px;
             font-size: 16px;
@@ -66,7 +66,7 @@
             transition: border-color 0.3s;
         }
 
-        input[type="number"]:focus {
+        input[type="text"]:focus, input[type="number"]:focus {
             outline: none;
             border-color: var(--primary-color);
         }
@@ -149,17 +149,17 @@
 
     <div class="input-group">
         <label for="targetProtein">每日需摄入蛋白质 (g)</label>
-        <input type="number" id="targetProtein" value="93" min="0" step="0.1">
+        <input type="text" id="targetProtein" value="93">
     </div>
 
     <div class="input-group">
         <label for="meat">已摄入肉类 (g)</label>
-        <input type="number" id="meat" placeholder="0" value="0" min="0" step="0.1">
+        <input type="text" id="meat" value="0">
     </div>
 
     <div class="input-group">
         <label for="whey">已摄入蛋白粉 (g)</label>
-        <input type="number" id="whey" placeholder="0" value="0" min="0" step="0.1">
+        <input type="text" id="whey" value="0">
     </div>
 
     <button onclick="calculateProtein()">计算剩余所需</button>
@@ -183,9 +183,14 @@
 
 <script>
     function calculateProtein() {
-        const proteinPerDay = parseFloat(document.getElementById('targetProtein').value) || 0;
-        const meatGram = parseFloat(document.getElementById('meat').value) || 0;
-        const wheyGram = parseFloat(document.getElementById('whey').value) || 0;
+        const proteinPerDay = parseToNum(document.getElementById('targetProtein').value);
+        const meatGram = parseToNum(document.getElementById('meat').value);
+        const wheyGram = parseToNum(document.getElementById('whey').value);
+
+        function parseToNum(str) {
+            const nums = str.replace(/\s/g, '').split('+');
+            return nums.map(num => parseFloat(num)).reduce((acc, cur) => acc + cur, 0);
+        }
 
         const proteinPer = {
             whey: 21.9 / 30,
